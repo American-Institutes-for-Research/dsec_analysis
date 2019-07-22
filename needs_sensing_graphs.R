@@ -11,7 +11,7 @@ blues_palette = brewer.pal(9, 'Blues')
 color_palette = blues_palette[c(2,5, 7)]
 
 # tab names and partner names
-tab_names = c("Structure", "Content", "Participants","Geographic Outreach","Outcomes", "Logistics&Timing")
+tab_names = c("Structure", "Content", "Participants","Geographic Outreach","Outcomes", "Logistics&Timing", "Supplementary Tracking Clean")
 partner_names = c("CEE","FIRST","Math Counts","NCWIT","NMSI","SSP","TGR",
                   "TIES","USASEF","Dayton STEM Center", "Morgan State CEMSE", "UC San Diego CREATE")
 
@@ -122,10 +122,47 @@ dur_pie
 
 
 ####### Figure 4 Intentional Military Connections ########## 
+military = read_excel(str_c(input_fp, 'Taxonomy and Snapshot Coding.xlsx'),sheet = 'Hub Survey Military Connections')
+
+military[is.na(military)] <- 0
+
+military$connection = apply(military[,c("DoDEA Schools", "Military-Connected Students")], 1, function(x) max(x))
+
+# connection either to DoDEA School or Military connected students
+military_final <- military %>% group_by(connection) %>% summarize(n = n()) %>%
+  mutate(prop_n = n / sum(n))
+
+military_final$connection[which(military_final$connection == "0")] <- "No"
+military_final$connection[which(military_final$connection == "1")] <- "Yes"
+
+mil_text_labs <- str_c(round(military_final$prop_n*100),"%")
+mil_pie_plot_labs <- c("Intentional Military Connections",
+                       "Intentional Military Connections by \nDSEC Partners \n(Either DoDEA Schools or \nMilitary-Connected Students)")
+mil_pie <- make_pie_graph(military_final, military_final$prop_n, military_final$connection, mil_text_labs ,mil_pie_plot_labs ,color_palette)
+mil_pie
 
 
 
 ####### LOGIC MODEL Y/N - FIGURE 5 ######
+# Note: Need to address NA vs. saying No
+# start with structure sheet
+logic_model = read_excel(str_c(input_fp, 'Taxonomy and Snapshot Coding.xlsx'),sheet = tab_names[length(tab_names)])
+
+logic_model = logic_model[-c(grep("Hubs", logic_model$Partner)),c('Partner', 'Logic_Model_Exists')]
+
+tot_partners = nrow(logic_model)
+print(str_c("total partners: ", tot_partners))
+
+# logic_reshape <- gather(logic_model, key = "Logic Model(s) Exist", value = "value",
+#                        colnames(logic_model)[!colnames(logic_model) %in% c("Partner")])
+
+logic_final <- logic_model %>% group_by(Logic_Model_Exists) %>% summarize(n=n()) %>%
+  mutate(prop_n = n/sum(n))
+
+lm_text_labs <- str_c(round(logic_final$prop_n*100),"%")
+lm_pie_plot_labs <- c("Logic Model(s)"," Whether DSEC Partners Have Existing Logic Models")
+lm_pie <- make_pie_graph(logic_final, logic_final$prop_n, logic_final$Logic_Model_Exists, lm_text_labs , lm_pie_plot_labs ,color_palette)
+lm_pie 
 
 
 ####### FIGURE 6 ALUMNI ########
