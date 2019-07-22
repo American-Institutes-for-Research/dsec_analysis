@@ -10,6 +10,8 @@ RColorBrewer::display.brewer.all()
 blues_palette = brewer.pal(9, 'Blues')
 color_palette = blues_palette[c(2,5, 7)]
 
+color_palette = c('#1e90ff','#00aa55', '#e73c4e')
+
 # tab names and partner names
 tab_names = c("Structure", "Content", "Participants","Geographic Outreach","Outcomes", "Logistics&Timing", "Supplementary Tracking Clean")
 partner_names = c("CEE","FIRST","Math Counts","NCWIT","NMSI","SSP","TGR",
