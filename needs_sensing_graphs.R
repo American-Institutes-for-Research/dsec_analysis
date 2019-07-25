@@ -5,11 +5,10 @@ lapply(c('tidyverse','stringr', 'dplyr', "readxl","ggplot2"), install_pkgs)
 input_fp = "/Users/npatel/Documents/DSEC/"
 
 RColorBrewer::display.brewer.all()
-#spectral_palette = brewer.pal(11, "Spectral")
-#color_palette = spectral_palette[c(3,8,10)]
+spectral_palette = brewer.pal(11, "Spectral")
+color_palette = spectral_palette[c(3,8,10)]
 blues_palette = brewer.pal(9, 'Blues')
 color_palette = blues_palette[c(2,5, 7)]
-
 color_palette = c('#1e90ff','#00aa55', '#e73c4e')
 
 # tab names and partner names
@@ -41,9 +40,12 @@ et_final$engagement_type[which(et_final$engagement_type == "out_of_school")] <- 
 
 # percentage pie plot
 et_text_labs <- str_c(round(et_final$prop_n*100),"%")
-et_pie_plot_labs <- c("Engagement Type","Engagement Type of DSEC Partner Programs")
+et_pie_plot_labs <- c("Environment","Environment Type of DSEC Partner Programs")
 et_pie <- make_pie_graph(et_final, et_final$prop_n, et_final$engagement_type, et_text_labs , et_pie_plot_labs ,color_palette)
 et_pie 
+
+out_fp = "out/"
+ggsave(str_c(out_fp, "engagement_type.png"), height = 6, width=6)
 
 # # count pie plot
 # et_text_labs <- et_final$n
@@ -85,6 +87,8 @@ mech_pie_plot_labs <- c("Mechanism","Mechanism of DSEC Partner Programs")
 mech_pie <- make_pie_graph(mech_final, mech_final$prop_n, mech_final$mechanism, mech_text_labs , mech_pie_plot_labs ,color_palette)
 mech_pie 
 
+ggsave(str_c(out_fp, "mechanism.png"), height = 6, width=6)
+
 # # count pie plot
 # mech_text_labs <- mech_final$n
 # mech_pie_plot_labs <-  c("Mechanism","Mechanism of DSEC Partner Programs")
@@ -122,28 +126,7 @@ dur_pie_plot_labs <- c("Duration","Duration of DSEC Partner Programs")
 dur_pie <- make_pie_graph(duration_final, duration_final$prop_n, duration_final$duration, dur_text_labs , dur_pie_plot_labs ,color_palette)
 dur_pie
 
-
-####### Figure 4 Intentional Military Connections ########## 
-military = read_excel(str_c(input_fp, 'Taxonomy and Snapshot Coding.xlsx'),sheet = 'Hub Survey Military Connections')
-
-military[is.na(military)] <- 0
-
-military$connection = apply(military[,c("DoDEA Schools", "Military-Connected Students")], 1, function(x) max(x))
-
-# connection either to DoDEA School or Military connected students
-military_final <- military %>% group_by(connection) %>% summarize(n = n()) %>%
-  mutate(prop_n = n / sum(n))
-
-military_final$connection[which(military_final$connection == "0")] <- "No"
-military_final$connection[which(military_final$connection == "1")] <- "Yes"
-
-mil_text_labs <- str_c(round(military_final$prop_n*100),"%")
-mil_pie_plot_labs <- c("Intentional Military Connections",
-                       "Intentional Military Connections by \nDSEC Partners \n(Either DoDEA Schools or \nMilitary-Connected Students)")
-mil_pie <- make_pie_graph(military_final, military_final$prop_n, military_final$connection, mil_text_labs ,mil_pie_plot_labs ,color_palette)
-mil_pie
-
-
+ggsave(str_c(out_fp, "duration.png"), height = 6, width=6)
 
 ####### LOGIC MODEL Y/N - FIGURE 5 ######
 # Note: Need to address NA vs. saying No
@@ -166,15 +149,58 @@ lm_pie_plot_labs <- c("Logic Model(s)"," Whether DSEC Partners Have Existing Log
 lm_pie <- make_pie_graph(logic_final, logic_final$prop_n, logic_final$Logic_Model_Exists, lm_text_labs , lm_pie_plot_labs ,color_palette)
 lm_pie 
 
-
+ggsave(str_c(out_fp, "logic_models_rotated.png"), height = 6, width=6)
+# 90 degrees for this one 
 ####### FIGURE 6 ALUMNI ########
 
 
 
 
+####### Figure 4 Intentional Military Connections PSC ########## 
+military = read_excel(str_c(input_fp, 'Taxonomy and Snapshot Coding.xlsx'),sheet = 'military psc')
+
+military[is.na(military)] <- 0
+
+military = military[-c(grep("Hubs",military$partner)),]
+
+# connection either to DoDEA School or Military connected students
+military_final <- military  %>% group_by(military_connection) %>% summarize(n = n()) %>%
+  mutate(prop_n = n / sum(n))
+
+military_final$military_connection[which(military_final$military_connection == "0")] <- "No"
+military_final$military_connection[which(military_final$military_connection == "1")] <- "Yes"
+
+mil_text_labs <- str_c(round(military_final$prop_n*100),"%")
+mil_pie_plot_labs <- c("Intentional Military Connections",
+                       "Intentional Military Connections by \nDSEC Partners")
+mil_pie <- make_pie_graph(military_final, military_final$prop_n, military_final$military_connection, mil_text_labs ,mil_pie_plot_labs ,color_palette)
+mil_pie
+
+ggsave(str_c(out_fp, "military_connections_psc.png"), height = 6, width=6)
 
 
-
+####### Figure 4 Intentional Military Connections ########## 
+# military = read_excel(str_c(input_fp, 'Taxonomy and Snapshot Coding.xlsx'),sheet = 'Hub Survey Military Connections')
+# 
+# military[is.na(military)] <- 0
+# 
+# military$connection = apply(military[,c("DoDEA Schools", "Military-Connected Students")], 1, function(x) max(x))
+# 
+# # connection either to DoDEA School or Military connected students
+# military_final <- military %>% group_by(connection) %>% summarize(n = n()) %>%
+#   mutate(prop_n = n / sum(n))
+# 
+# military_final$connection[which(military_final$connection == "0")] <- "No"
+# military_final$connection[which(military_final$connection == "1")] <- "Yes"
+# 
+# mil_text_labs <- str_c(round(military_final$prop_n*100),"%")
+# mil_pie_plot_labs <- c("Intentional Military Connections",
+#                        "Intentional Military Connections by \nDSEC Partners \n(Either DoDEA Schools or \nMilitary-Connected Students)")
+# mil_pie <- make_pie_graph(military_final, military_final$prop_n, military_final$connection, mil_text_labs ,mil_pie_plot_labs ,color_palette)
+# mil_pie
+# 
+# ggsave(str_c(out_fp, "military_connections.png"), height = 6, width=6)
+# 
 
 
 

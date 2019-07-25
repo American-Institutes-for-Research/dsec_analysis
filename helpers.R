@@ -19,7 +19,7 @@ install_pkgs = function(pkg){
 make_pie_graph <- function(df, y_var, fill_var, text_labels, plot_labs,clr_palette){
   df %>% ggplot(mapping=aes(x = '', y=y_var, fill=fill_var)) +
     geom_bar(stat="identity") +
-    coord_polar(theta = 'y', start = 0) +
+    coord_polar(theta = 'y', start = 90) +
     geom_text(mapping=aes(label=text_labels,fontface="bold"), position = position_stack(vjust = 0.5)) +
     labs(x = NULL, y = NULL, fill = plot_labs[1], title = plot_labs[2]) +
     theme_classic() +
