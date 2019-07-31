@@ -1,15 +1,15 @@
 setwd("Documents/DSEC/github_repo/dsec_analysis/")
 source("helpers.R")
-lapply(c('tidyverse','stringr', 'dplyr', "readxl","ggplot2"), install_pkgs)
+lapply(c('tidyverse','stringr', 'dplyr', "readxl","ggplot2","RColorBrewer"), install_pkgs)
 
 input_fp = "/Users/npatel/Documents/DSEC/"
 
 RColorBrewer::display.brewer.all()
 spectral_palette = brewer.pal(11, "Spectral")
 color_palette = spectral_palette[c(3,8,10)]
-blues_palette = brewer.pal(9, 'Blues')
-color_palette = blues_palette[c(2,5, 7)]
-color_palette = c('#1e90ff','#00aa55', '#e73c4e')
+# blues_palette = brewer.pal(9, 'Blues')
+# color_palette = blues_palette[c(2,5, 7)]
+# color_palette = c('#1e90ff','#00aa55', '#e73c4e')
 
 # tab names and partner names
 tab_names = c("Structure", "Content", "Participants","Geographic Outreach","Outcomes", "Logistics&Timing", "Supplementary Tracking Clean")
@@ -28,6 +28,12 @@ idx_to_drop = c(1, which(is.na(engagement_type$program)), which(engagement_type$
 engagement_type = engagement_type[-unique(idx_to_drop),]
 engagement_type[is.na(engagement_type)] <- 0
 
+# drop hubs
+#engagement_type = engagement_type[-c(17:22),]
+
+# drop morgan state mentor program
+engagement_type = engagement_type[-c(21),]
+
 tot_programs <- nrow(engagement_type)
 print(str_c("Total estimated programs: ", nrow(engagement_type)))
 
@@ -40,23 +46,12 @@ et_final$engagement_type[which(et_final$engagement_type == "out_of_school")] <- 
 
 # percentage pie plot
 et_text_labs <- str_c(round(et_final$prop_n*100),"%")
-et_pie_plot_labs <- c("Environment","Environment Type of DSEC Partner Programs")
+et_pie_plot_labs <- c("Environment","DSEC Partner Programing\n by Environment Type")
 et_pie <- make_pie_graph(et_final, et_final$prop_n, et_final$engagement_type, et_text_labs , et_pie_plot_labs ,color_palette)
 et_pie 
 
 out_fp = "out/"
-ggsave(str_c(out_fp, "engagement_type.png"), height = 6, width=6)
-
-# # count pie plot
-# et_text_labs <- et_final$n
-# et_pie_plot_labs <- c("Engagement Type","Engagement Type of DSEC Partner Programs")
-# et_pie_count <- make_pie_graph(et_final, et_final$n, et_final$engagement_type, et_text_labs , et_pie_plot_labs ,color_palette)
-# et_pie_count 
-# 
-# # count bar plot
-# et_bar_plot_labs <- c( 'Engagement Type', 'Number of Programs', "Engagement Type of DSEC Partner Programs")
-# et_barplot <- make_bar_graph_counts(et_final, et_final$engagement_type, y=et_final$n, et_bar_plot_labs,color_palette)
-# et_barplot
+ggsave(str_c(out_fp, "fig1_et.png"), height =4, width=6)
 
 
 
@@ -67,6 +62,12 @@ colnames(mechanism) <- c("program",'in-person','virtual','hybrid')
 idx_to_drop = c(1, which(is.na(mechanism$program)), which(mechanism$program %in% partner_names))
 mechanism = mechanism[-unique(idx_to_drop),]
 mechanism[is.na(mechanism)] <- 0
+
+# drop hubs
+#mechanism = mechanism[-c(17:22),]
+
+# drop morgan state mentor program
+mechanism = mechanism[-c(21),]
 
 tot_programs <- nrow(mechanism)
 print(str_c("Total estimated programs: ", nrow(engagement_type)))
@@ -83,11 +84,12 @@ mech_final$mechanism[which(mech_final$mechanism == "hybrid")] <- "Hybrid"
 
 # percentage pie plot
 mech_text_labs <- str_c(round(mech_final$prop_n*100),"%")
-mech_pie_plot_labs <- c("Mechanism","Mechanism of DSEC Partner Programs")
+mech_pie_plot_labs <- c("Mechanism","DSEC Partner Programming \nby Mechanism")
 mech_pie <- make_pie_graph(mech_final, mech_final$prop_n, mech_final$mechanism, mech_text_labs , mech_pie_plot_labs ,color_palette)
 mech_pie 
 
-ggsave(str_c(out_fp, "mechanism.png"), height = 6, width=6)
+# note: change size of geom_text for issues with 4%
+ggsave(str_c(out_fp, "fig2_mech.png"), height = 4, width=6)
 
 # # count pie plot
 # mech_text_labs <- mech_final$n
@@ -109,6 +111,10 @@ idx_to_drop = c(1, which(is.na(duration$program)), which(duration$program %in% p
 duration = duration[-unique(idx_to_drop),]
 duration[is.na(duration)] <- 0
 
+# drop hubs
+#duration = duration[-c(17:22), ]
+
+duration = duration[-c(21),]
 tot_programs <- nrow(duration)
 print(str_c("Total estimated programs: ", nrow(duration)))
 
@@ -122,13 +128,13 @@ duration_final$duration[which(duration_final$duration == "medium")] <- "Medium-t
 duration_final$duration[which(duration_final$duration == "long_term")] <- "Long-term (> 1 month)"
 
 dur_text_labs <- str_c(round(duration_final$prop_n*100),"%")
-dur_pie_plot_labs <- c("Duration","Duration of DSEC Partner Programs")
+dur_pie_plot_labs <- c("Duration","DSEC Partner Programming \nby Duration")
 dur_pie <- make_pie_graph(duration_final, duration_final$prop_n, duration_final$duration, dur_text_labs , dur_pie_plot_labs ,color_palette)
 dur_pie
 
-ggsave(str_c(out_fp, "duration.png"), height = 6, width=6)
+ggsave(str_c(out_fp, "fig3_duration.png"), height =4, width=6)
 
-####### LOGIC MODEL Y/N - FIGURE 5 ######
+####### LOGIC MODEL Y/N - FIGURE 4 ######
 # Note: Need to address NA vs. saying No
 # start with structure sheet
 logic_model = read_excel(str_c(input_fp, 'Taxonomy and Snapshot Coding.xlsx'),sheet = tab_names[length(tab_names)])
@@ -138,46 +144,84 @@ logic_model = logic_model[-c(grep("Hubs", logic_model$Partner)),c('Partner', 'Lo
 tot_partners = nrow(logic_model)
 print(str_c("total partners: ", tot_partners))
 
+#  drop hubs
+hubs = c("UCSD", "Morgan State", "Dayton")
+logic_model = logic_model[!logic_model$Partner %in% hubs, ]
+
 # logic_reshape <- gather(logic_model, key = "Logic Model(s) Exist", value = "value",
 #                        colnames(logic_model)[!colnames(logic_model) %in% c("Partner")])
+
 
 logic_final <- logic_model %>% group_by(Logic_Model_Exists) %>% summarize(n=n()) %>%
   mutate(prop_n = n/sum(n))
 
+logic_final$Logic_Model_Exists[which(logic_final$Logic_Model_Exists == 'No')] <- "No current logic model(s)"
+logic_final$Logic_Model_Exists[which(logic_final$Logic_Model_Exists == 'Yes')] <- "Has current logic model(s)"
+
+
 lm_text_labs <- str_c(round(logic_final$prop_n*100),"%")
-lm_pie_plot_labs <- c("Logic Model(s)"," Whether DSEC Partners Have Existing Logic Models")
+lm_pie_plot_labs <- c("Logic Model(s)"," Whether DSEC Partners Have \nExisting Logic Models")
 lm_pie <- make_pie_graph(logic_final, logic_final$prop_n, logic_final$Logic_Model_Exists, lm_text_labs , lm_pie_plot_labs ,color_palette)
 lm_pie 
 
-ggsave(str_c(out_fp, "logic_models_rotated.png"), height = 6, width=6)
+ggsave(str_c(out_fp, "fig4_logicmodels.png"), height = 4, width=6)
 # 90 degrees for this one 
-####### FIGURE 6 ALUMNI ########
 
 
+####### FIGURE 5 Evaluation ########
+eval = read_excel(str_c(input_fp, 'Taxonomy and Snapshot Coding.xlsx'),sheet = 'current evaluation practices')
+eval[is.na(eval)] <- 0
 
+eval_final <- eval %>% select(partner, `external evaluation`) %>% group_by(`external evaluation`) %>% summarize(n=n()) %>%
+  mutate(prop_n = n/sum(n))
+
+
+eval_final$`external evaluation`[which(eval_final$`external evaluation` == 0)] <- "No"
+eval_final$`external evaluation`[which(eval_final$`external evaluation` == 1)] <- "Yes"
+names(eval_final)[which(names(eval_final) == "external evaluation")] <- "External Evaluation"
+
+eval_text_labs <- str_c(round(eval_final$prop_n*100),"%")
+eval_pie_plot_labs <- c("External Evaluation Experience"," Whether DSEC Partners Have Experience \nwith External Evaluation")
+eval_pie <- make_pie_graph(eval_final, eval_final$prop_n, eval_final$`External Evaluation`, eval_text_labs , eval_pie_plot_labs ,color_palette)
+eval_pie
+
+# eval_reshape <- gather(eval, key = "Evaluation Type", value = "value",
+#                        colnames(eval)[!colnames(eval) %in% c("partner")])
+# 
+# eval_final <- eval_reshape %>% filter(value == 1) %>% group_by(`Evaluation Type`) %>% summarize(n=n()) %>%
+#   mutate(prop_n = n/sum(n))
+# 
+# eval_final$`Evaluation Type` <- eval_final$`Evaluation Type` %>% str_to_title()
+# 
+# eval_text_labs <- str_c(round(eval_final$prop_n*100),"%")
+# eval_pie_plot_labs <- c("Evaluation Experience"," Whether DSEC Partners Have Evaluation Experience")
+# eval_pie <- make_pie_graph(eval_final, eval_final$prop_n, eval_final$`Evaluation Type`, eval_text_labs , eval_pie_plot_labs ,color_palette)
+# eval_pie
+
+ggsave(str_c(out_fp, "fig5_eval.png"), height = 4, width=6)
 
 ####### Figure 4 Intentional Military Connections PSC ########## 
-military = read_excel(str_c(input_fp, 'Taxonomy and Snapshot Coding.xlsx'),sheet = 'military psc')
-
-military[is.na(military)] <- 0
-
-military = military[-c(grep("Hubs",military$partner)),]
-
-# connection either to DoDEA School or Military connected students
-military_final <- military  %>% group_by(military_connection) %>% summarize(n = n()) %>%
-  mutate(prop_n = n / sum(n))
-
-military_final$military_connection[which(military_final$military_connection == "0")] <- "No"
-military_final$military_connection[which(military_final$military_connection == "1")] <- "Yes"
-
-mil_text_labs <- str_c(round(military_final$prop_n*100),"%")
-mil_pie_plot_labs <- c("Intentional Military Connections",
-                       "Intentional Military Connections by \nDSEC Partners")
-mil_pie <- make_pie_graph(military_final, military_final$prop_n, military_final$military_connection, mil_text_labs ,mil_pie_plot_labs ,color_palette)
-mil_pie
-
-ggsave(str_c(out_fp, "military_connections_psc.png"), height = 6, width=6)
-
+# military = read_excel(str_c(input_fp, 'Taxonomy and Snapshot Coding.xlsx'),sheet = 'military psc')
+# 
+# military[is.na(military)] <- 0
+# 
+# military = military[-c(grep("Hubs",military$partner)),]
+# 
+# # connection either to DoDEA School or Military connected students
+# military_final <- military  %>% group_by(military_connection) %>% summarize(n = n()) %>%
+#   mutate(prop_n = n / sum(n))
+# 
+# military_final$military_connection[which(military_final$military_connection == "0")] <- "No"
+# military_final$military_connection[which(military_final$military_connection == "1")] <- "Yes"
+# 
+# mil_text_labs <- str_c(round(military_final$prop_n*100),"%")
+# mil_pie_plot_labs <- c("Intentional Military Connections",
+#                        "Intentional Military Connections by \nDSEC Partners")
+# mil_pie <- make_pie_graph(military_final, military_final$prop_n, military_final$military_connection, mil_text_labs ,mil_pie_plot_labs ,color_palette)
+# mil_pie
+# 
+# ggsave(str_c(out_fp, "military_connections_psc.png"), height = 6, width=6)
+# 
 
 ####### Figure 4 Intentional Military Connections ########## 
 # military = read_excel(str_c(input_fp, 'Taxonomy and Snapshot Coding.xlsx'),sheet = 'Hub Survey Military Connections')
@@ -205,7 +249,11 @@ ggsave(str_c(out_fp, "military_connections_psc.png"), height = 6, width=6)
 
 
 
-
+# evaluation ... 
+# move table to later 
+# morgan state yes
+# ucsd yes 
+# dayton no 
 
 
 

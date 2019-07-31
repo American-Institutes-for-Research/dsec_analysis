@@ -12,7 +12,7 @@ install_pkgs = function(pkg){
   
 } # end install_pkgs()
 
-
+# 90 
 # REQUIRES: df, y_var, fill_var, text_labels needed, plot_labels vector (fill & plot title), color palette)
 # MODIFIES: nothing
 # EFFECTS: makes pie graph of data
@@ -25,9 +25,10 @@ make_pie_graph <- function(df, y_var, fill_var, text_labels, plot_labs,clr_palet
     theme_classic() +
     theme(axis.text = element_blank(),
           axis.line = element_blank(),
-          legend.title = element_text(face="bold"),
-          legend.text = element_text(face="bold"),
-          plot.title = element_text(face="bold",hjust=0.5, vjust = -10)
+          legend.title = element_text(face="bold", size = 12),
+          legend.text = element_text(face="bold", size = 10),
+          plot.title = element_text(face="bold",hjust=0.5, vjust = -7, size = 14),
+          text = element_text(face="bold", size = 12)
     ) +
     scale_fill_manual(values=c(clr_palette))
   
