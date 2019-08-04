@@ -1,40 +1,39 @@
 setwd("Documents/DSEC/github_repo/dsec_analysis/")
+# must set working directory to source the helpers.R and load the two functions
 source("helpers.R")
 lapply(c('tidyverse','stringr', 'dplyr', "readxl","ggplot2","RColorBrewer"), install_pkgs)
 
-input_fp = "/Users/npatel/Documents/DSEC/"
+# set input/output folder paths
+input_fp = "/Users/npatel/Documents/DSEC/" # input file: 'Taxonomy and Snapshot Coding.xlsx'
+out_fp = "out/" # output files: figures
 
 RColorBrewer::display.brewer.all()
 spectral_palette = brewer.pal(11, "Spectral")
 color_palette = spectral_palette[c(3,8,10)]
-# blues_palette = brewer.pal(9, 'Blues')
-# color_palette = blues_palette[c(2,5, 7)]
-# color_palette = c('#1e90ff','#00aa55', '#e73c4e')
 
-# tab names and partner names
+# Relevant tab names and partner names
 tab_names = c("Structure", "Content", "Participants","Geographic Outreach","Outcomes", "Logistics&Timing", "Supplementary Tracking Clean")
+
 partner_names = c("CEE","FIRST","Math Counts","NCWIT","NMSI","SSP","TGR",
                   "TIES","USASEF","Dayton STEM Center", "Morgan State CEMSE", "UC San Diego CREATE")
 
 
-# start with structure sheet
-structure = read_excel(str_c(input_fp, 'Taxonomy and Snapshot Coding.xlsx'),sheet = tab_names[1],skip = 2)
+# Read in the Structure Sheet for Figures 1-3
+structure = read_excel(str_c(input_fp, 'Taxonomy and Snapshot Coding.xlsx'), sheet = tab_names[1],skip = 2)
 
-####### ENGAGEMENT TYPE - FIGURE 1 ###### 
+####### FIGURE 1: ENGAGEMENT TYPE ###### 
 engagement_type = structure[,c('X__1','ENVIRONMENT TYPE','X__2','X__3')]
 colnames(engagement_type) <- c("program",'in_school','out_of_school','adult_learning')
 
+# cleaning
 idx_to_drop = c(1, which(is.na(engagement_type$program)), which(engagement_type$program %in% partner_names))
 engagement_type = engagement_type[-unique(idx_to_drop),]
 engagement_type[is.na(engagement_type)] <- 0
 
-# drop hubs
-#engagement_type = engagement_type[-c(17:22),]
-
 # drop morgan state mentor program
 engagement_type = engagement_type[-c(21),]
 
-tot_programs <- nrow(engagement_type)
+# check: total program count should be 22
 print(str_c("Total estimated programs: ", nrow(engagement_type)))
 
 # reshape for groups
@@ -50,26 +49,22 @@ et_pie_plot_labs <- c("Environment","DSEC Partner Programing\n by Environment Ty
 et_pie <- make_pie_graph(et_final, et_final$prop_n, et_final$engagement_type, et_text_labs , et_pie_plot_labs ,color_palette)
 et_pie 
 
-out_fp = "out/"
-ggsave(str_c(out_fp, "fig1_et.png"), height =4, width=6)
+ggsave(str_c(out_fp, "fig1_et.png"), height = 4, width= 6)
 
 
-
-####### MECHANISM - FIGURE 2 ###### 
+####### FIGURE 2 - MECHANISM  ###### 
 mechanism = structure[,c('X__1', 'MECHANISM', 'X__4','X__5')]
 colnames(mechanism) <- c("program",'in-person','virtual','hybrid')
 
+# cleaning
 idx_to_drop = c(1, which(is.na(mechanism$program)), which(mechanism$program %in% partner_names))
 mechanism = mechanism[-unique(idx_to_drop),]
 mechanism[is.na(mechanism)] <- 0
 
-# drop hubs
-#mechanism = mechanism[-c(17:22),]
-
 # drop morgan state mentor program
 mechanism = mechanism[-c(21),]
 
-tot_programs <- nrow(mechanism)
+# check: total program count should be 22
 print(str_c("Total estimated programs: ", nrow(engagement_type)))
 
 # reshape for groups
@@ -88,34 +83,22 @@ mech_pie_plot_labs <- c("Mechanism","DSEC Partner Programming \nby Mechanism")
 mech_pie <- make_pie_graph(mech_final, mech_final$prop_n, mech_final$mechanism, mech_text_labs , mech_pie_plot_labs ,color_palette)
 mech_pie 
 
-# note: change size of geom_text for issues with 4%
 ggsave(str_c(out_fp, "fig2_mech.png"), height = 4, width=6)
 
-# # count pie plot
-# mech_text_labs <- mech_final$n
-# mech_pie_plot_labs <-  c("Mechanism","Mechanism of DSEC Partner Programs")
-# mech_pie_count <- make_pie_graph(mech_final, mech_final$n, mech_final$mechanism, mech_text_labs ,mech_pie_plot_labs ,color_palette)
-# mech_pie_count 
-# 
-# # count bar plot
-# mech_bar_plot_labs <- c( "Mechanism", 'Number of Programs', "Mechanism of DSEC Partner Programs")
-# mech_barplot <- make_bar_graph_counts(mech_final, mech_final$mechanism, y=mech_final$n, mech_bar_plot_labs,color_palette)
-# mech_barplot
-
-
-####### DURATION - FIGURE 3 ######
+####### FIGURE 3 - DURATION ######
 duration = structure[,c('X__1','DURATION','X__6','X__7')]
 colnames(duration) <- c("program",'short','medium','long_term')
 
+# cleaning
 idx_to_drop = c(1, which(is.na(duration$program)), which(duration$program %in% partner_names))
 duration = duration[-unique(idx_to_drop),]
 duration[is.na(duration)] <- 0
 
-# drop hubs
-#duration = duration[-c(17:22), ]
 
+# drop morgan state mentor program
 duration = duration[-c(21),]
-tot_programs <- nrow(duration)
+
+# check: total program count should be 22
 print(str_c("Total estimated programs: ", nrow(duration)))
 
 duration_reshape <- gather(duration, key = "duration", value = "value",
@@ -134,23 +117,18 @@ dur_pie
 
 ggsave(str_c(out_fp, "fig3_duration.png"), height =4, width=6)
 
-####### LOGIC MODEL Y/N - FIGURE 4 ######
-# Note: Need to address NA vs. saying No
-# start with structure sheet
+####### FIGURE 4 - LOGIC MODEL Y/N ######
+# read in the Supplementary tracking clean sheet (has logic model info)
 logic_model = read_excel(str_c(input_fp, 'Taxonomy and Snapshot Coding.xlsx'),sheet = tab_names[length(tab_names)])
 
 logic_model = logic_model[-c(grep("Hubs", logic_model$Partner)),c('Partner', 'Logic_Model_Exists')]
 
-tot_partners = nrow(logic_model)
-print(str_c("total partners: ", tot_partners))
+# check: should have 12 partners
+print(str_c("total partners: ", nrow(logic_model)))
 
-#  drop hubs
+# drop hubs
 hubs = c("UCSD", "Morgan State", "Dayton")
 logic_model = logic_model[!logic_model$Partner %in% hubs, ]
-
-# logic_reshape <- gather(logic_model, key = "Logic Model(s) Exist", value = "value",
-#                        colnames(logic_model)[!colnames(logic_model) %in% c("Partner")])
-
 
 logic_final <- logic_model %>% group_by(Logic_Model_Exists) %>% summarize(n=n()) %>%
   mutate(prop_n = n/sum(n))
@@ -158,17 +136,15 @@ logic_final <- logic_model %>% group_by(Logic_Model_Exists) %>% summarize(n=n())
 logic_final$Logic_Model_Exists[which(logic_final$Logic_Model_Exists == 'No')] <- "No current logic model(s)"
 logic_final$Logic_Model_Exists[which(logic_final$Logic_Model_Exists == 'Yes')] <- "Has current logic model(s)"
 
-
 lm_text_labs <- str_c(round(logic_final$prop_n*100),"%")
 lm_pie_plot_labs <- c("Logic Model(s)"," Whether DSEC Partners Have \nExisting Logic Models")
 lm_pie <- make_pie_graph(logic_final, logic_final$prop_n, logic_final$Logic_Model_Exists, lm_text_labs , lm_pie_plot_labs ,color_palette)
 lm_pie 
 
 ggsave(str_c(out_fp, "fig4_logicmodels.png"), height = 4, width=6)
-# 90 degrees for this one 
 
 
-####### FIGURE 5 Evaluation ########
+####### FIGURE 5 - Evaluation ########
 eval = read_excel(str_c(input_fp, 'Taxonomy and Snapshot Coding.xlsx'),sheet = 'current evaluation practices')
 eval[is.na(eval)] <- 0
 
@@ -185,18 +161,6 @@ eval_pie_plot_labs <- c("External Evaluation Experience"," Whether DSEC Partners
 eval_pie <- make_pie_graph(eval_final, eval_final$prop_n, eval_final$`External Evaluation`, eval_text_labs , eval_pie_plot_labs ,color_palette)
 eval_pie
 
-# eval_reshape <- gather(eval, key = "Evaluation Type", value = "value",
-#                        colnames(eval)[!colnames(eval) %in% c("partner")])
-# 
-# eval_final <- eval_reshape %>% filter(value == 1) %>% group_by(`Evaluation Type`) %>% summarize(n=n()) %>%
-#   mutate(prop_n = n/sum(n))
-# 
-# eval_final$`Evaluation Type` <- eval_final$`Evaluation Type` %>% str_to_title()
-# 
-# eval_text_labs <- str_c(round(eval_final$prop_n*100),"%")
-# eval_pie_plot_labs <- c("Evaluation Experience"," Whether DSEC Partners Have Evaluation Experience")
-# eval_pie <- make_pie_graph(eval_final, eval_final$prop_n, eval_final$`Evaluation Type`, eval_text_labs , eval_pie_plot_labs ,color_palette)
-# eval_pie
 
 ggsave(str_c(out_fp, "fig5_eval.png"), height = 4, width=6)
 
@@ -247,13 +211,6 @@ ggsave(str_c(out_fp, "fig5_eval.png"), height = 4, width=6)
 # 
 
 
-
-
-# evaluation ... 
-# move table to later 
-# morgan state yes
-# ucsd yes 
-# dayton no 
 
 
 

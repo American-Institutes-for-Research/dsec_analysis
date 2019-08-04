@@ -12,7 +12,6 @@ install_pkgs = function(pkg){
   
 } # end install_pkgs()
 
-# 90 
 # REQUIRES: df, y_var, fill_var, text_labels needed, plot_labels vector (fill & plot title), color palette)
 # MODIFIES: nothing
 # EFFECTS: makes pie graph of data
@@ -34,23 +33,4 @@ make_pie_graph <- function(df, y_var, fill_var, text_labels, plot_labs,clr_palet
   
 }
 
-# REQUIRES: df, x_var, y_var, plot_labels vector (x,y, & plot title), color palette)
-# MODIFIES: nothing
-# EFFECTS: makes bar graph of counts data
-make_bar_graph_counts <- function(df, x_var, y_var, plot_labs,clr_palette){
-  
-  df %>% ggplot(mapping=aes(x = x_var, y=y_var,fill=x_var)) +
-  geom_bar(stat="identity", position = "dodge", show.legend = FALSE) +
-  geom_text(mapping=aes(label=y_var,fontface="bold",vjust=-0.5)) +
-  labs(x = plot_labs[1], y = plot_labs[2], title = plot_labs[3]) +
-  theme_classic() +
-  theme(
-    plot.title = element_text(face="bold",hjust=0.5),
-    axis.text.x = element_text(face="bold",color="black"),
-    axis.text.y = element_text(face="bold",color="black"),
-    axis.title.x = element_text(face="bold",color="black"),
-    axis.title.y = element_text(face="bold",color="black")
-  ) +
-  scale_fill_manual(values=c(clr_palette))
 
-}
